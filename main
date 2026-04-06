@@ -1,0 +1,35 @@
+def extract_audio(video_dir, audio_dir):
+    import os
+    import glob
+    import subprocess
+
+    # 设置分割后的视频和音频的文件路径
+    os.makedirs(audio_dir, exist_ok=True)
+    # 创建音频文件夹
+
+    video_files = glob.glob(os.path.join(video_dir, '*.mp4'))
+    # os.path.join(video_dir,'*.mp4')指找所有后缀是.mp4的文件，这样就会返回所有后缀是.mp4的文件
+    print(f'找到 {len(video_files)} 个视频文件')
+
+    for idx, video_path in enumerate(video_files, 1):
+        # enumerate(列表，开始数字)，1表示从1开始，不写默认从0开始
+        name = os.path.basename(video_path)[:-4]
+        # [:-4]表示切除只拿video_path最后文件名的后四个
+        audio_path = os.path.join(audio_dir, f'{name}.wav')
+        # 表示该视频对应的音频的路径
+        if os.path.exists(audio_path):
+            continue
+        # 如果存在，则不执行这个语句
+        cmd = f'ffmpeg -y -i "{video_path}" -ar 16000 -ac 1 "{audio_path}" -loglevel error'
+        # 拼了一段命令用f''字符串拼接,把变量video_path变量和audio_path拼接到字符串里。
+        # ffmpeg是运行工具，-y是覆盖y已存在文件，-i “输入视频”是指定从哪个视频提取声音 -ar 16000是说音频采样率16k
+        # ac 1是单声道 “输出音频.wav”是指保存到哪里 -loglevel error 只打印错误!
+        # 要注意给系统的命令中变量一定要加“”，如"{变量}"
+        subprocess.call(cmd, shell=True)
+        # subprocess.call(cmd,shell=True)即在终端运行相应指令
+
+        if idx % 100 == 0:
+            print(f'进度: {idx}/{len(video_files)}')
+        # 用idx表示当前进度是怎么样的，比如有当前是第500个文件一共有1000个文件就是500/1000
+
+    print('音频提取完成！')
